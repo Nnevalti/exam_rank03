@@ -41,7 +41,7 @@ void	display_canvas(t_data data, char *canvas)
 
 int		in_border(t_shape shape, int x, int y)
 {
-	return (sqrtf(pow(shape.x - x, 2) + pow(shape.y - y, 2)) > shape.r - 1);
+	return (sqrtf(powf(shape.x - x, 2) + powf(shape.y - y, 2)) > shape.r - 1);
 }
 
 int		in_shape(t_shape shape, int x, int y)

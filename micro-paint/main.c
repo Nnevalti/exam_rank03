@@ -20,7 +20,7 @@ typedef struct		s_shape
 	char			col;
 }					t_shape;
 
-void	display_canvas(t_data data, char *canvas)
+void	display_canvas(char *canvas, t_data data)
 {
 	int	x;
 	int	y;
