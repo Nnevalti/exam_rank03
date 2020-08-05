@@ -1,91 +1,91 @@
-#include <stdio.h>
 #include <unistd.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
-typedef struct	s_data
+typedef struct		s_data
 {
-	int			width;
-	int			height;
-	char		c;
-}				t_data;
+	int		w;
+	int		h;
+	char	c;
+}					t_data;
 
-typedef struct	s_shape
+typedef struct		s_shape
 {
-	char		c;
-	float		x;
-	float		y;
-	float		r;
-	char		col;
-}				t_shape;
+	char			c;
+	float			x;
+	float			y;
+	float			r;
+	char			col;
+}					t_shape;
 
-void			display_canvas(char *canvas, t_data data)
+void	display_canvas(t_data data, char *canvas)
 {
-	int			i;
-	int			j;
-	i = 0;
+	int	x;
+	int	y;
 
-	while (i < data.height)
+	y = 0;
+	while (y < data.h)
 	{
-		j = 0;
-		while (j < data.width)
+		x = 0;
+		while (x < data.w)
 		{
-			write(1, &canvas[i * data.width + j], 1);
-			j++;
+			write(1, &canvas[y * data.w + x], 1);
+			x++;
 		}
 		write(1, "\n", 1);
-		i++;
+		y++;
 	}
 }
 
-int				in_shape(t_shape shape, int i, int j)
+int		in_border(t_shape shape, int x, int y)
 {
-	// srqt((Xa - Xb) * (Xa - Xb) + (Ya - Yb) * (Ya - Yb))
-	return ((sqrtf(powf(shape.x - j, 2) + powf(shape.y - i, 2)) <= shape.r));
+	return (sqrtf(pow(shape.x - x, 2) + pow(shape.y - y, 2)) > shape.r - 1);
 }
 
-int				in_border(t_shape shape, int i, int j)
+int		in_shape(t_shape shape, int x, int y)
 {
-	return ((sqrtf(powf(shape.x - j, 2) + powf(shape.y - i, 2)) > shape.r - 1));
+	return (sqrtf(powf(shape.x - x, 2) + powf(shape.y - y, 2)) <= shape.r);
 }
-void			draw(t_data data, t_shape shape, char *canvas)
-{
-	int			i;
-	int			j;
-	i = 0;
 
-	while (i < data.height)
+void	draw(t_data data, t_shape shape, char *canvas)
+{
+	int		x;
+	int		y;
+
+	y = 0;
+	while (y < data.h)
 	{
-		j = 0;
-		while (j < data.width)
+		x = 0;
+		while (x < data.w)
 		{
-			if (shape.c == 'C' && in_shape(shape, i, j))
-				canvas[i * data.width + j] = shape.col;
-			else if (shape.c == 'c' && in_shape(shape, i, j)
-					&& in_border(shape, i, j))
-				canvas[i * data.width + j] = shape.col;
-			j++;
+			if (shape.c == 'c' && in_shape(shape, x, y)
+				&& in_border(shape, x, y))
+				canvas[y * data.w + x] = shape.col;
+			else if(shape.c == 'C' && in_shape(shape, x, y))
+				canvas[y * data.w + x] = shape.col;
+			x++;
 		}
-		i++;
+		y++;
 	}
 }
-int				mini_paint(FILE *file)
-{
-	t_data		data;
-	t_shape		shape;
-	char		*canvas;
 
-	if ((fscanf(file, "%d %d %c\n", &data.width, &data.height, &data.c) != 3))
+int			mini_paint(FILE *file)
+{
+	t_data	data;
+	char	*canvas;
+	t_shape	shape;
+
+	if ((fscanf(file, "%d %d %c\n", &data.w, &data.h, &data.c) != 3))
 		return (1);
-	if (data.width <= 0 || data.width > 300
-		|| data.height <= 0 || data.height > 300)
+	if (data.h <= 0 || data.h > 300 || data.w <= 0 || data.w > 300)
 		return (1);
-	if (!(canvas = malloc(sizeof(char) * data.height * data.width)))
+	if (!(canvas = malloc(sizeof(char) * data.h * data.w)))
 		return (1);
-	memset(canvas, data.c, data.height * data.width);
+	memset(canvas, data.c, data.h * data.w);
 	while ((fscanf(file, "%c %f %f %f %c\n", &shape.c, &shape.x, &shape.y,
-			&shape.r, &shape.col) == 5))
+		&shape.r, &shape.col) == 5))
 	{
 		if (shape.r <= 0 || (shape.c != 'c' && shape.c != 'C'))
 		{
@@ -94,25 +94,18 @@ int				mini_paint(FILE *file)
 		}
 		draw(data, shape, canvas);
 	}
-	display_canvas(canvas, data);
+	display_canvas(data, canvas);
 	free(canvas);
 	return (0);
-
 }
 
-int				main (int ac, char **av)
+int		main(int ac, char **av)
 {
-	FILE 		*file;
-	char 		*error;
+	FILE	*file;
 
 	if (ac == 2)
 	{
-		if (!(file = fopen(av[1], "r")))
-		{
-			write(1, "Error: Operation file corrupted\n", 32);
-			return (1);
-		}
-		if (mini_paint(file))
+		if (!(file = fopen(av[1], "r")) || mini_paint(file))
 		{
 			write(1, "Error: Operation file corrupted\n", 32);
 			return (1);
